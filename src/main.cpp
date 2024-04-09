@@ -1,52 +1,65 @@
-#include "../include/raylib.h"
-#include "../include/rcamera.h"
-#include "../include/raymath.h"
+#include "raylib.h"
+#include "rcamera.h"
+#include "raymath.h"
 // #include "../include/walls.h"
-#include "../include/particle.h"
+#include "particle.h"
 #include <iostream>
+
+// Camera mouse movement sensitivity
+#define CAMERA_MOUSE_MOVE_SENSITIVITY 0.001f // TODO: it should be independant of framerate
+
+// Mouse Square Gloabal variables
+#define SIZE_SQUARE_MOUSE 80
+#define AREA_X_MIN 600
+#define AREA_Y_MIN 180
+#define AREA_X_MAX 1320
+#define AREA_Y_MAX 900
+
+// 3D Camera Global Variables Ajustment
+#define AJUST_CAMERA 0.015f //This variable ajusts how much/far will move the camera in the 3D world. 
 
 using namespace std;
 const int screenWidth = 1920;
 const int screenHeight = 1080;
 Vector2 mousePosition = {0.0f, 0.0f};
+Vector2 prevMouse = {0.0f, 0.0f};
+bool isMouseOnPosition = true;
 
-// Camera mouse movement sensitivity
-#define CAMERA_MOUSE_MOVE_SENSITIVITY 0.001f // TODO: it should be independant of framerate
-
+// PROTOTYPE FUNCTIONS
 void UpdateCamera(Camera *camera);
 void updateParticlesTime(float timePlayed, Particle particles[]);
 void drawRectangule();
+void verifyMousePosition();
 // void drawWalls(Wall walls);
 
 int main(void)
 {
 
     InitWindow(screenWidth, screenHeight, "Testing particles");
-    // Wall walls;
 
     Particle particles[MAX_PARTICLES];
 
+    // Variables to modify Camera Position in 3D particles.
+    float deltaZ;
+    float deltaY;
+
     int particleCount = initializeParticles(particles);
-    float frameTime = GetFrameTime();
+    float frameTime;
 
     float deltaTime = 0.0f;
     InitAudioDevice();
 
     Music song = LoadMusicStream("song/song.wav");
     SetMusicVolume(song, 0.1f);
+
     char timeText[20];
     float progress;
+
     Camera3D camera = {0};
     camera.position = (Vector3){-15.0f, 0.0f, 0.0f};
     camera.target = (Vector3){1.0f, 0.0f, 0.0f};
     camera.up = (Vector3){0.0f, 1.0f, 0.0f};
     camera.fovy = 100.0f;
-
-    Camera2D camera2D_ = {0};
-    camera2D_.offset = (Vector2){0.0f, 0.0f};
-    camera2D_.rotation = 0.0f;
-    camera2D_.target = (Vector2){0.0f, 0.0f};
-    camera2D_.zoom = 1.0f;
 
     int rectWidth = 800;
     int rectHeight = 800;
@@ -54,30 +67,40 @@ int main(void)
     int rectY = (screenHeight - rectHeight) / 2;
 
     PlayMusicStream(song);
-    SetMousePosition(screenWidth/2,screenHeight/2);
+    SetMousePosition(screenWidth / 2, screenHeight / 2);
 
     SetTargetFPS(165);
     DisableCursor();
+    mousePosition = GetMousePosition();
 
     while (!WindowShouldClose())
     {
+        // Update variables
         frameTime = GetFrameTime();
         deltaTime += frameTime;
+        prevMouse = mousePosition;
         mousePosition = GetMousePosition();
+        verifyMousePosition();
+
+        // Ajusting 3D camera position using mouse position
+        deltaZ = mousePosition.x - prevMouse.x;
+        deltaY = mousePosition.y - prevMouse.y;
+
+        camera.position.z -= deltaZ * AJUST_CAMERA;
+        camera.position.y += deltaY * AJUST_CAMERA;
+
+        // Update functions
         UpdateCamera(&camera);
         UpdateMusicStream(song);
-
         progress = GetMusicTimePlayed(song);
         updateParticlesTime(progress, particles);
         sprintf(timeText, "TIME: %.2f s", progress);
 
+        // ********** DRAWING ************
         BeginDrawing();
         ClearBackground(BLACK);
 
-        BeginMode2D(camera2D_);
-        DrawRectangleLines(rectX, rectY, rectWidth, rectHeight, WHITE);
-        EndMode2D();
-
+        // Draw particles
         BeginMode3D(camera);
 
         if (deltaTime > 0.5f)
@@ -85,16 +108,19 @@ int main(void)
             drawParticles(particles, particleCount);
             UpdateParticlesPosition(particles, particleCount, frameTime);
         }
-
-        // DrawCubeWires({0.0f, 0.0f, 0.0f}, 0.0f, 25.0f, 25.0f, WHITE);
         EndMode3D();
 
+        // Draw Big Square
+        DrawRectangleLines(rectX, rectY, rectWidth, rectHeight, WHITE);
+
+        // Draw time
         DrawRectangle(50, 50, 10 * progress, 20, RED);
         DrawText(timeText, 50, 80, 20, WHITE);
-        drawRectangule();
 
+        drawRectangule();
         EndDrawing();
     }
+
     StopMusicStream(song);
     UnloadMusicStream(song);
     CloseAudioDevice();
@@ -217,11 +243,37 @@ void updateParticlesTime(float timePlayed, Particle particles[])
 
 void drawRectangule()
 {
-    int rectWidth = 80;
-    int rectHeight = 80;
+    if (isMouseOnPosition)
+    {
+        int rectWidth = SIZE_SQUARE_MOUSE;
+        int rectHeight = SIZE_SQUARE_MOUSE;
 
-    int rectX = mousePosition.x - rectWidth / 2;
-    int rectY = mousePosition.y - rectHeight / 2;
+        int rectX = mousePosition.x - rectWidth / 2;
+        int rectY = mousePosition.y - rectHeight / 2;
 
-    DrawRectangleLines(rectX, rectY, rectWidth, rectHeight, WHITE);
+        DrawRectangleLines(rectX, rectY, rectWidth, rectHeight, WHITE);
+    }
+}
+
+void verifyMousePosition()
+{
+    if (mousePosition.x < AREA_X_MIN)
+    {
+        mousePosition.x = AREA_X_MIN;
+    }
+    else if (mousePosition.x > AREA_X_MAX)
+    {
+        mousePosition.x = AREA_X_MAX;
+    }
+
+    if (mousePosition.y < AREA_Y_MIN)
+    {
+        mousePosition.y = AREA_Y_MIN;
+    }
+    else if (mousePosition.y > AREA_Y_MAX)
+    {
+        mousePosition.y = AREA_Y_MAX;
+    }
+
+    SetMousePosition(mousePosition.x, mousePosition.y);
 }
