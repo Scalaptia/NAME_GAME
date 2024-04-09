@@ -8,7 +8,7 @@ using namespace std;
 #define PARTICLE_SPEED_Y 0.0f
 #define PARTICLE_SPEED_Z 0.0f
 
-#define PARTICLE_SIZE 1.0f
+#define PARTICLE_SIZE 1.5f
 #define PARTICLE_MAX_SIZE 15.0f
 
 // CHANGE COLOR OF THE PARTICLES HERE.
@@ -16,6 +16,8 @@ using namespace std;
     CLITERAL(Color) { 116, 160, 195, 255 }
 #define BLUEGRAYDARK \
     CLITERAL(Color) { 39, 42, 56, 255 }
+#define PURPLELIGHT \
+    CLITERAL(Color) { 220, 185, 255, 255 }
 
 Color changeColorParticle();
 class Particle
@@ -43,8 +45,8 @@ void Particle::updateParticle()
     do
     {
         this->position.x = (float)GetRandomValue(-100, 500);
-        this->position.y = (float)GetRandomValue(-100, 100);
-        this->position.z = (float)GetRandomValue(-100, 100);
+        this->position.y = (float)GetRandomValue(-200, 200);
+        this->position.z = (float)GetRandomValue(-300, 300);
     } while (this->position.x >= -50 && this->position.x <= 50 &&
              this->position.y >= -20 && this->position.y <= 20 &&
              this->position.z >= -20 && this->position.z <= 20);
@@ -52,14 +54,13 @@ void Particle::updateParticle()
     this->lifeSpan = (float)GetRandomValue(20, 30);
     this->particleSpeed = (Vector3){PARTICLE_SPEED_X, PARTICLE_SPEED_Y, PARTICLE_SPEED_Z};
     this->growing = GetRandomValue(0, 1);
-
-    this->color = changeColorParticle();
 }
 // --------------- PROTOTYPE ----------------------------
 Particle getNewParticle();
 int initializeParticles(Particle particles[]);
 void drawParticles(Particle particles[], int particleCount);
 void UpdateParticlesPosition(Particle particles[], int particleCount, float frameTime);
+bool areColorsEqual(Color color1, Color color2);
 
 // --------------- FUNCTIONS DEVELOPEMENT ----------------------------
 Particle getNewParticle()
@@ -71,8 +72,8 @@ Particle getNewParticle()
     do
     {
         newParticle.position.x = (float)GetRandomValue(-100, 300);
-        newParticle.position.y = (float)GetRandomValue(-100, 100);
-        newParticle.position.z = (float)GetRandomValue(-100, 100);
+        newParticle.position.y = (float)GetRandomValue(-200, 200);
+        newParticle.position.z = (float)GetRandomValue(-300, 300);
     } while (newParticle.position.x >= -50 && newParticle.position.x <= 50 &&
              newParticle.position.y >= -20 && newParticle.position.y <= 20 &&
              newParticle.position.z >= -20 && newParticle.position.z <= 20);
@@ -154,4 +155,20 @@ Color changeColorParticle()
     }
 
     return BLUEGRAYDARK;
+}
+
+void modifyColorParticles(Color color, Particle particles[])
+{
+    for (int i = 0; i < MAX_PARTICLES; i++)
+    {
+        if (!areColorsEqual(particles[i].color, BLUEGRAYDARK))
+        { 
+            particles[i].color = color;
+        }
+    }
+}
+
+bool areColorsEqual(Color color1, Color color2)
+{
+    return (color1.a == color2.a) && (color1.r == color2.r) && (color1.g == color2.g) && (color1.b == color2.b);
 }
