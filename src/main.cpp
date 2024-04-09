@@ -16,7 +16,7 @@
 #define AREA_Y_MAX 900
 
 // 3D Camera Global Variables Ajustment
-#define AJUST_CAMERA 0.015f //This variable ajusts how much/far will move the camera in the 3D world. 
+#define AJUST_CAMERA 0.015f // This variable ajusts how much/far will move the camera in the 3D world.
 
 using namespace std;
 const int screenWidth = 1920;
@@ -24,6 +24,10 @@ const int screenHeight = 1080;
 Vector2 mousePosition = {0.0f, 0.0f};
 Vector2 prevMouse = {0.0f, 0.0f};
 bool isMouseOnPosition = true;
+
+float musicBeat[] = {3.7, 4.1, 4.6, 5.1, 5.6, 6.1, 6.6, 7.1, 7.6, 8.1, 8.6, 9.1, 9.6, 10.1, 10.6, 11.1, 11.6, 1500.0};
+Color musicBeatColorParticles[] = {RED, BLUE, WHITE, GREEN, PURPLE, WHITE, ORANGE, LIME, PINK, GOLD, GREEN, WHITE, GOLD, RED, PURPLE, GREEN, YELLOW, YELLOW};
+int beatPosition = 0;
 
 // PROTOTYPE FUNCTIONS
 void UpdateCamera(Camera *camera);
@@ -45,21 +49,20 @@ int main(void)
 
     int particleCount = initializeParticles(particles);
     float frameTime;
+    char timeText[20];
+    float progress;
 
-    float deltaTime = 0.0f;
     InitAudioDevice();
 
     Music song = LoadMusicStream("song/song.wav");
-    SetMusicVolume(song, 0.1f);
+    SetMusicVolume(song, 0.4f);
 
-    char timeText[20];
-    float progress;
 
     Camera3D camera = {0};
     camera.position = (Vector3){-15.0f, 0.0f, 0.0f};
     camera.target = (Vector3){1.0f, 0.0f, 0.0f};
     camera.up = (Vector3){0.0f, 1.0f, 0.0f};
-    camera.fovy = 100.0f;
+    camera.fovy = 120.0f;
 
     int rectWidth = 800;
     int rectHeight = 800;
@@ -69,7 +72,7 @@ int main(void)
     PlayMusicStream(song);
     SetMousePosition(screenWidth / 2, screenHeight / 2);
 
-    SetTargetFPS(165);
+    SetTargetFPS(GetMonitorRefreshRate(GetCurrentMonitor()));
     DisableCursor();
     mousePosition = GetMousePosition();
 
@@ -77,7 +80,7 @@ int main(void)
     {
         // Update variables
         frameTime = GetFrameTime();
-        deltaTime += frameTime;
+
         prevMouse = mousePosition;
         mousePosition = GetMousePosition();
         verifyMousePosition();
@@ -93,8 +96,8 @@ int main(void)
         UpdateCamera(&camera);
         UpdateMusicStream(song);
         progress = GetMusicTimePlayed(song);
-        updateParticlesTime(progress, particles);
         sprintf(timeText, "TIME: %.2f s", progress);
+        updateParticlesTime(progress, particles);
 
         // ********** DRAWING ************
         BeginDrawing();
@@ -103,11 +106,9 @@ int main(void)
         // Draw particles
         BeginMode3D(camera);
 
-        if (deltaTime > 0.5f)
-        {
-            drawParticles(particles, particleCount);
-            UpdateParticlesPosition(particles, particleCount, frameTime);
-        }
+        drawParticles(particles, particleCount);
+        UpdateParticlesPosition(particles, particleCount, frameTime);
+
         EndMode3D();
 
         // Draw Big Square
@@ -138,107 +139,12 @@ void UpdateCamera(Camera *camera)
 
 void updateParticlesTime(float timePlayed, Particle particles[])
 {
-    if (timePlayed >= 3.7f && timePlayed < 3.8f)
+    if (musicBeat[beatPosition] < timePlayed)
     {
-        modifyColorParticles(RED, particles);
-        return;
+        modifyColorParticles(musicBeatColorParticles[beatPosition], particles);
+        beatPosition++;
     }
-
-    if (timePlayed >= 4.1f && timePlayed < 4.2f)
-    {
-        modifyColorParticles(BLUE, particles);
-        return;
-    }
-
-    if (timePlayed >= 4.6f && timePlayed < 4.7f)
-    {
-        modifyColorParticles(WHITE, particles);
-        return;
-    }
-
-    if (timePlayed >= 5.1f && timePlayed < 5.2f)
-    {
-        modifyColorParticles(GREEN, particles);
-        return;
-    }
-
-    if (timePlayed >= 5.6f && timePlayed < 5.7f)
-    {
-        modifyColorParticles(PURPLE, particles);
-        return;
-    }
-
-    if (timePlayed >= 6.1f && timePlayed < 6.2f)
-    {
-        modifyColorParticles(WHITE, particles);
-        return;
-    }
-
-    if (timePlayed >= 6.6f && timePlayed < 6.7f)
-    {
-        modifyColorParticles(ORANGE, particles);
-        return;
-    }
-
-    if (timePlayed >= 7.1f && timePlayed < 7.2f)
-    {
-        modifyColorParticles(LIME, particles);
-        return;
-    }
-
-    if (timePlayed >= 7.6f && timePlayed < 7.7f)
-    {
-        modifyColorParticles(PINK, particles);
-        return;
-    }
-
-    if (timePlayed >= 8.1f && timePlayed < 8.2f)
-    {
-        modifyColorParticles(GOLD, particles);
-        return;
-    }
-
-    if (timePlayed >= 8.6f && timePlayed < 8.7f)
-    {
-        modifyColorParticles(GREEN, particles);
-        return;
-    }
-
-    if (timePlayed >= 9.1f && timePlayed < 9.2f)
-    {
-        modifyColorParticles(WHITE, particles);
-        return;
-    }
-
-    if (timePlayed >= 9.6f && timePlayed < 9.7f)
-    {
-        modifyColorParticles(GOLD, particles);
-        return;
-    }
-
-    if (timePlayed >= 10.1f && timePlayed < 10.2f)
-    {
-        modifyColorParticles(RED, particles);
-        return;
-    }
-
-    if (timePlayed >= 10.6f && timePlayed < 10.7f)
-    {
-        modifyColorParticles(PURPLE, particles);
-        return;
-    }
-
-    if (timePlayed >= 11.1f && timePlayed < 11.2f)
-    {
-        modifyColorParticles(GREEN, particles);
-        return;
-    }
-
-    if (timePlayed >= 11.6f && timePlayed < 11.7f)
-    {
-        modifyColorParticles(YELLOW, particles);
-        return;
-    }
+    
 }
 
 void drawRectangule()
