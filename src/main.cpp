@@ -1,6 +1,7 @@
 #include "raylib.h"
 #include "rcamera.h"
 #include "raymath.h"
+#include "cube.h"
 // #include "../include/walls.h"
 #include "particle.h"
 #include <iostream>
@@ -57,7 +58,6 @@ int main(void)
     Music song = LoadMusicStream("song/song.wav");
     SetMusicVolume(song, 0.4f);
 
-
     Camera3D camera = {0};
     camera.position = (Vector3){-15.0f, 0.0f, 0.0f};
     camera.target = (Vector3){1.0f, 0.0f, 0.0f};
@@ -68,6 +68,11 @@ int main(void)
     int rectHeight = 800;
     int rectX = (screenWidth - rectWidth) / 2;
     int rectY = (screenHeight - rectHeight) / 2;
+
+    // Create cubes in the middle of the screen
+    Cube cube1 = Cube(Vector3{-10.0f, 0.0f, 0.0f}, Vector3{1.0f, 1.0f, 1.0f}, RED, 0.1f);
+    Cube cube2 = Cube(Vector3{-5.0f, 0.0f, 0.0f}, Vector3{1.0f, 1.0f, 1.0f}, BLUE, 0.1f);
+    Cube cube3 = Cube(Vector3{0.0f, 0.0f, 0.0f}, Vector3{1.0f, 1.0f, 1.0f}, GREEN, 0.1f);
 
     PlayMusicStream(song);
     SetMousePosition(screenWidth / 2, screenHeight / 2);
@@ -99,6 +104,11 @@ int main(void)
         sprintf(timeText, "TIME: %.2f s", progress);
         updateParticlesTime(progress, particles);
 
+        // Update cubes
+        cube1.update();
+        cube2.update();
+        cube3.update();
+
         // ********** DRAWING ************
         BeginDrawing();
         ClearBackground(BLACK);
@@ -108,6 +118,11 @@ int main(void)
 
         drawParticles(particles, particleCount);
         UpdateParticlesPosition(particles, particleCount, frameTime);
+
+        // Draw cubes
+        cube1.draw();
+        cube2.draw();
+        cube3.draw();
 
         EndMode3D();
 
@@ -144,7 +159,6 @@ void updateParticlesTime(float timePlayed, Particle particles[])
         modifyColorParticles(musicBeatColorParticles[beatPosition], particles);
         beatPosition++;
     }
-    
 }
 
 void drawRectangule()
